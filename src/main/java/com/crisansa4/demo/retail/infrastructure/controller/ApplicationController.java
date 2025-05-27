@@ -1,9 +1,9 @@
 package com.crisansa4.demo.retail.infrastructure.controller;
 
 import com.crisansa4.demo.retail.application.service.PriceService;
-import com.crisansa4.demo.retail.domain.model.Price;
+import com.crisansa4.demo.retail.domain.Price;
 import com.crisansa4.demo.retail.infrastructure.controller.dto.ApplicablePriceResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +17,7 @@ public class ApplicationController {
 
     private final PriceService priceService;
 
-    @Autowired
+    // @Autowired
     public ApplicationController(PriceService priceService) {
         this.priceService = priceService;
     }
@@ -48,7 +48,7 @@ public class ApplicationController {
         Price price = priceService.findApplicablePrice(dateTime, brandId, productId);
 
         if (price == null) {
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("No applicable price found for the given parameters.");
         }
 
         ApplicablePriceResponse response = new ApplicablePriceResponse();
@@ -58,7 +58,7 @@ public class ApplicationController {
         response.setStartDate(price.getStartDate());
         response.setEndDate(price.getEndDate());
         response.setFinalPrice(price.getPrice());
-        response.setCurrency(price.getCurrency());
+        response.setCurrency(price.getCurr());
 
         return ResponseEntity.ok(response);
     }

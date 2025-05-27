@@ -1,4 +1,4 @@
-package com.crisansa4.demo.retail.domain.model;
+package com.crisansa4.demo.retail.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

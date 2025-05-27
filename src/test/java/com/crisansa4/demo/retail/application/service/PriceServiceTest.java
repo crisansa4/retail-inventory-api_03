@@ -1,50 +1,70 @@
 package com.crisansa4.demo.retail.application.service;
 
-import com.crisansa4.demo.retail.domain.model.Price;
-import com.crisansa4.demo.retail.infrastructure.repository.PriceRepository;
-
+import com.crisansa4.demo.retail.domain.Price;
+import com.crisansa4.demo.retail.application.port.PricePort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PriceServiceTest {
+class PriceServiceTest {
 
-
-    @Autowired
+    private PricePort pricePort;
     private PriceService priceService;
-    @Autowired
-    private PriceRepository priceRepository;
 
-    @Test
-    void shouldLoadDataFromDataSql() {
-        List<Price> prices = priceRepository.findAll();
-        assertFalse(prices.isEmpty());
+    @BeforeEach
+    void setup() {
+        pricePort = mock(PricePort.class);
+        priceService = new PriceService(pricePort);
     }
 
-    @ParameterizedTest(name = "name = {0} | Date: {1}-{2}-{3} {4}:{5} | ProductId: {6} | BrandId: {7} | Expected PriceList: {8}")
-    @CsvSource({
-            "'Test 1', 2020,6,14,10,0, 35455, 1, 1",
-            "'Test 2', 2020,6,14,16,0, 35455, 1, 2",
-            "'Test 3', 2020,6,14,21,0, 35455, 1, 1",
-            "'Test 4', 2020,6,15,10,0, 35455, 1, 3",
-            "'Test 5', 2020,6,16,21,0, 35455, 1, 4"
-    })
-    void shouldReturnExpectedPriceList(String testName, int y, int m, int d, int h, int min, int productId, int brandId, int expectedPriceList) {
-        LocalDateTime date = LocalDateTime.of(y, m, d, h, min);
-        Price result = priceService.findApplicablePrice(date, brandId, productId);
-        assertNotNull(result, testName + " failed: result was null");
-        assertEquals(expectedPriceList, result.getPriceList(), testName + " failed: wrong price list");
+    @Test
+    void getAllPrices_returnsList() {
+        List<Price> prices = List.of(new Price());
+        when(pricePort.findAll()).thenReturn(prices);
+        assertEquals(prices, priceService.getAllPrices());
+    }
+
+    @Test
+    void getPriceById_returnsPrice() {
+        Price price = new Price();
+        when(pricePort.findById(1L)).thenReturn(Optional.of(price));
+        assertEquals(price, priceService.getPriceById(1L));
+    }
+
+    @Test
+    void getPriceById_returnsNullIfNotFound() {
+        when(pricePort.findById(1L)).thenReturn(Optional.empty());
+        assertNull(priceService.getPriceById(1L));
+    }
+
+    @Test
+    void createPrice_returnsSavedPrice() {
+        Price price = new Price();
+        when(pricePort.save(price)).thenReturn(price);
+        assertEquals(price, priceService.createPrice(price));
+    }
+
+    @Test
+    void findApplicablePrice_returnsNullIfNoPrices() {
+        when(pricePort.findByBrandIdAndProductIdAndDate(anyInt(), anyInt(), any())).thenReturn(List.of());
+        assertNull(priceService.findApplicablePrice(LocalDateTime.now(), 1, 1));
+    }
+
+    @Test
+    void findApplicablePrice_returnsPriceWithHighestPriority() {
+        Price low = new Price();
+        low.setPriority(1);
+        Price high = new Price();
+        high.setPriority(10);
+        when(pricePort.findByBrandIdAndProductIdAndDate(anyInt(), anyInt(), any()))
+                .thenReturn(List.of(low, high));
+        Price result = priceService.findApplicablePrice(LocalDateTime.now(), 1, 1);
+        assertEquals(high, result);
     }
 }

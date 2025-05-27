@@ -29,11 +29,8 @@ public class PriceService {
     }
 
     public Price findApplicablePrice(LocalDateTime date, int brandId, int productId) {
-        return pricePort.findAll().stream()
-                .filter(p -> p.getBrandId() == brandId)
-                .filter(p -> p.getProductId() == productId)
-                .filter(p -> !date.isBefore(p.getStartDate()) && !date.isAfter(p.getEndDate()))
-                .min((p1, p2) -> Integer.compare(p2.getPriority(), p1.getPriority()))
+        return pricePort.findByBrandIdAndProductIdAndDate(brandId, productId, date).stream()
+                .max((p1, p2) -> Integer.compare(p1.getPriority(), p2.getPriority()))
                 .orElse(null);
     }
 }

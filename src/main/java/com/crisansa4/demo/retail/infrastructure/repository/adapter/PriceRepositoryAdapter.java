@@ -6,6 +6,7 @@ import com.crisansa4.demo.retail.infrastructure.repository.PriceRepository;
 import com.crisansa4.demo.retail.infrastructure.repository.mapper.PriceMapper;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,5 +37,15 @@ public class PriceRepositoryAdapter implements PricePort {
         return PriceMapper.toDomain(
                 priceRepository.save(PriceMapper.toEntity(price))
         );
+    }
+
+    @Override
+    public List<Price> findByBrandIdAndProductIdAndDate(int brandId, int productId, LocalDateTime date) {
+        return priceRepository
+                .findByBrandIdAndProductIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(brandId, productId, date, date)
+                .stream()
+                .map(PriceMapper::toDomain)
+                .toList();
+                //collect(Collectors.toList());
     }
 }
