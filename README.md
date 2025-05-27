@@ -97,8 +97,7 @@ src/
 
 ## ‍💻 Author
 
-Daiana Juárez  
-[LinkedIn](https://linkedin.com/in/daiana-juarez)
+Cristina Sanz Sánchez
 
 ---
 
