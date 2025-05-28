@@ -51,9 +51,30 @@ class PriceServiceTest {
     }
 
     @Test
-    void findApplicablePrice_returnsNullIfNoPrices() {
+    void shouldReturnNullWhenNoApplicablePrice() {
         when(pricePort.findByBrandIdAndProductIdAndDate(anyInt(), anyInt(), any())).thenReturn(List.of());
-        assertNull(priceService.findApplicablePrice(LocalDateTime.now(), 1, 1));
+        Price result = priceService.findApplicablePrice(LocalDateTime.now(), 1, 1);
+        assertNull(result);
+    }
+
+    @Test
+    void shouldCreatePrice() {
+        Price price = new Price();
+        when(pricePort.save(price)).thenReturn(price);
+        assertEquals(price, priceService.createPrice(price));
+    }
+
+    @Test
+    void shouldReturnPriceByIdIfExists() {
+        Price price = new Price();
+        when(pricePort.findById(1L)).thenReturn(Optional.of(price));
+        assertEquals(price, priceService.getPriceById(1L));
+    }
+
+    @Test
+    void shouldReturnNullIfPriceByIdNotExists() {
+        when(pricePort.findById(1L)).thenReturn(Optional.empty());
+        assertNull(priceService.getPriceById(1L));
     }
 
     @Test
